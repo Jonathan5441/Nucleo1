@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administracion de Estudiantes</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4e73df;
+            --secondary: #858796;
+            --light: #f8f9fc;
+            --dark: #5a5c69;
+            --accent: #f6c23e;
+        }
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            font-family: 'Nunito', sans-serif;
+        }
+        .navbar {
+            background-color: white;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        .navbar-brand, h1, h2, h3, h4, h5, h6 {
+            color: var(--primary);
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            border-color: var(--primary);
+        }
+        .btn-primary:hover {
+            background-color: #2e59d9;
+            border-color: #2e59d9;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        .table {
+            color: var(--dark);
+        }
+        .table thead th {
+            background-color: #f8f9fc;
+            color: var(--primary);
+            border-color: #e3e6f0;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        .modal-content {
+            border: none;
+            box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        }
+        .form-control, .form-select {
+            border-radius: 10rem;
+            font-size: 0.8rem;
+            border-color: #d1d3e2;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #bac8f3;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+        }
+        .btn {
+            border-radius: 10rem;
+            font-size: 0.8rem;
+            padding: 0.75rem 1rem;
+        }
+        .btn-icon-split {
+            padding: 0;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: stretch;
+            justify-content: center;
+        }
+        .btn-icon-split .icon {
+            background: rgba(0, 0, 0, 0.15);
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+        }
+        .btn-icon-split .text {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container">
+            <h1 class="navbar-brand w-100 text-center m-0">Administracion de Estudiantes </h1>
+        </div>
+    </nav>
+
+    <div class="container my-5">
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h2 class="m-0 font-weight-bold text-primary">Lista de estudiantes</h2>
+            </div>
+            <div class="card-body">
+                <button type="button" class="btn btn-primary btn-icon-split mb-4" data-bs-toggle="modal" data-bs-target="#estudianteModal" onclick="resetForm()">
+                    <span class="icon text-white-50">
+                        <i class="fas fa-plus"></i>
+                    </span>
+                    <span class="text">Añadir Estudiante</span>
+                </button>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Apellido</th>
+                                <th>Correo</th>
+                                <th>Curso</th>
+                                <th>Aula</th>
+                                <th>Herramientas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="estudiante : ${estudiantes}">
+                                <td th:text="${estudiante.nombre}"></td>
+                                <td th:text="${estudiante.apellido}"></td>
+                                <td th:text="${estudiante.email}"></td>
+                                <td th:text="${estudiante.cursos != null and !estudiante.cursos.empty} ? ${estudiante.cursos[0].nombre} : 'Sin curso'"></td>
+                                <td th:text="${estudiante.aula != null} ? ${estudiante.aula.numeroAula} : 'Sin aula'"></td>
+                                <td>
+                                    <button class="btn btn-warning btn-circle btn-sm me-2" 
+                                            onclick="editarEstudiante(this)"
+                                            th:data-id="${estudiante.id}"
+                                            th:data-nombre="${estudiante.nombre}"
+                                            th:data-apellido="${estudiante.apellido}"
+                                            th:data-email="${estudiante.email}"
+                                            th:data-curso="${estudiante.cursos != null and !estudiante.cursos.empty} ? ${estudiante.cursos[0].nombre} : ''"
+                                            th:data-aula="${estudiante.aula != null} ? ${estudiante.aula.numeroAula} : ''">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <a th:href="@{/estudiantes/eliminar/{id}(id=${estudiante.id})}" 
+                                       class="btn btn-danger btn-circle btn-sm"
+                                       onclick="return confirm('Esta seguro de borrar al estudiante?')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for adding/editing student -->
+    <div class="modal fade" id="estudianteModal" tabindex="-1" aria-labelledby="estudianteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="estudianteModalLabel">
+                        <span id="modalTitle">Añadir estudiante3</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="estudianteForm" th:action="@{/estudiantes/guardar}" method="post">
+                        <input type="hidden" id="id" name="id">
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="apellido" class="form-label">Apellido</label>
+                            <input type="text" class="form-control" id="apellido" name="apellido" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Correo</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nombreCurso" class="form-label">Curso</label>
+                            <input type="text" class="form-control" id="nombreCurso" name="nombreCurso" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="numeroAula" class="form-label">Aula</label>
+                            <input type="text" class="form-control" id="numeroAula" name="numeroAula" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-icon-split w-100">
+                            <span class="icon text-white-50">
+                                <i class="fas fa-save"></i>
+                            </span>
+                            <span class="text">Guardar</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editarEstudiante(button) {
+            const id = button.getAttribute('data-id');
+            const nombre = button.getAttribute('data-nombre');
+            const apellido = button.getAttribute('data-apellido');
+            const email = button.getAttribute('data-email');
+            const curso = button.getAttribute('data-curso');
+            const aula = button.getAttribute('data-aula');
+
+            document.getElementById('id').value = id;
+            document.getElementById('nombre').value = nombre;
+            document.getElementById('apellido').value = apellido;
+            document.getElementById('email').value = email;
+            document.getElementById('nombreCurso').value = curso;
+            document.getElementById('numeroAula').value = aula;
+
+            document.getElementById('modalTitle').textContent = 'Editar estudiante';
+            document.getElementById('estudianteForm').action = '/estudiantes/actualizar/' + id;
+
+            const modal = new bootstrap.Modal(document.getElementById('estudianteModal'));
+            modal.show();
+        }
+
+        function resetForm() {
+            document.getElementById('estudianteForm').reset();
+            document.getElementById('id').value = '';
+            document.getElementById('modalTitle').textContent = 'Añadir estudiante';
+            document.getElementById('estudianteForm').action = '/estudiantes/guardar';
+        }
+    </script>
+</body>
+</html>
